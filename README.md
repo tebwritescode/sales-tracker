@@ -11,199 +11,273 @@ A modern, playful web application for sales tracking and analytics with an inter
 - 🔒 **Secure Authentication** - Session-based authentication with password hashing
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
 
-## Quick Start
+## Features
 
+### Core Functionality
+- **Employee Management**: Add, edit, and manage sales employees with commission rates and draw amounts
+- **Sales Data Entry**: Manual entry and bulk CSV upload for sales records
+- **Analytics Dashboard**: Interactive charts and reports with multiple time period filters
+- **Admin Panel**: Password-protected management interface
+
+### Database Schema
+- **Employee Table**: ID, name, hire date, active status, commission rate, draw amount
+- **Sales Table**: ID, employee ID, date, revenue, deals count, commission, draw payment, period type
+- **Settings Table**: Default analytics period, admin credentials, field display toggles
+- **Goals Table**: Employee goals by time period with revenue and deal targets
+
+### Three Main Pages
+
+#### 1. Management Tab (Password Protected)
+- Login form with username/password authentication
+- Employee management interface
+- Settings panel for admin credentials and system configuration
+- Field toggle switches for commission/draw display (% vs $)
+- **Color scheme customization with 8 preset themes**
+- Goal setting interface for employees
+
+#### 2. Analytics Page (Public Access)
+- Year-to-Date sales view by default
+- Interactive charts using Chart.js:
+  - Bar charts: Employee revenue comparison
+  - Pie charts: Deal distribution
+  - Line charts: Sales trends over time
+- Time period filters: Week, Month, Quarter, Year, Custom date range
+- Export functionality for reports
+- Key performance indicators and metrics
+- **Adaptive UI that responds to selected color scheme**
+
+#### 3. Data Entry Page (Public Access)
+- Form for manual sales data input
+- Automatic commission calculation based on employee rates
+- Draw payment tracking with running balance
+- Bulk CSV import functionality
+- Data validation and error handling
+- Recent sales records display
+- **Themed interface matching selected color scheme**
+
+## Technical Stack
+
+- **Backend**: Flask with SQLAlchemy ORM
+- **Database**: SQLite with proper relationships
+- **Forms**: Flask-WTF with CSRF protection
+- **Security**: Werkzeug password hashing, session management
+- **Frontend**: Bootstrap 5 responsive UI
+- **Charts**: Chart.js for data visualization
+- **Deployment**: Docker containerization
+
+## Installation & Setup
+
+### Quick Start with Docker (Recommended)
+
+1. **Easy setup with the provided script**:
+   ```bash
+   git clone <repository-url>
+   cd sales-tracker
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+2. **Or manually with Docker Compose**:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access the application**:
+   - Open http://localhost:5000
+   - Default admin credentials: `admin` / `admin`
+
+### Setup Options
+
+**Development Mode** (default):
 ```bash
-docker run -d \
-  -p 5000:5000 \
-  -v sales-data:/app/data \
-  -v sales-uploads:/app/uploads \
-  --name sales-tracker \
-  tebwritescode/sales-tracker:latest
+./setup.sh --dev
+# or
+docker-compose up --build
 ```
 
-Access the application at `http://localhost:5000`
-
-## Default Credentials
-
-- **Username:** `admin`
-- **Password:** `admin`
-
-⚠️ **Important:** Change the default credentials immediately after first login!
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SECRET_KEY` | Flask secret key for session encryption | `dev-key-change-in-production` |
-| `DATABASE_URL` | SQLAlchemy database URI | `sqlite:///data/sales_tracker.db` |
-| `SQLALCHEMY_TRACK_MODIFICATIONS` | Track SQLAlchemy modifications | `False` |
-| `UPLOAD_FOLDER` | Directory for file uploads | `uploads` |
-| `MAX_CONTENT_LENGTH` | Maximum upload file size (bytes) | `16777216` (16MB) |
-| `FLASK_ENV` | Flask environment | `production` |
-
-## Docker Compose Example
-
-```yaml
-version: '3.8'
-
-services:
-  sales-tracker:
-    image: tebwritescode/sales-tracker:latest
-    container_name: sales-tracker
-    ports:
-      - "5000:5000"
-    environment:
-      - SECRET_KEY=your-secret-key-here
-      - DATABASE_URL=sqlite:///data/sales_tracker.db
-    volumes:
-      - sales-data:/app/data
-      - sales-uploads:/app/uploads
-    restart: unless-stopped
-
-volumes:
-  sales-data:
-  sales-uploads:
-```
-
-## Volumes
-
-| Path | Description |
-|------|-------------|
-| `/app/data` | Database storage location |
-| `/app/uploads` | User uploaded files |
-
-## Networking
-
-The container exposes port `5000` by default. For production deployments, it's recommended to use a reverse proxy like Nginx or Traefik.
-
-### Nginx Reverse Proxy Example
-
-```nginx
-server {
-    listen 80;
-    server_name sales.example.com;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-## Interactive Login Experience
-
-This application features a unique, playful login interface where:
-- The login box expands when you approach it
-- The Sign In button actively evades your cursor until you fill in both username and password fields
-- Provides an engaging user experience while maintaining security
-
-## User Permission Levels
-
-1. **Admin (Level 4)** - Full system access
-2. **Manager (Level 3)** - User management and data oversight
-3. **Supervisor (Level 2)** - Team data management
-4. **User (Level 1)** - Basic data entry
-
-## Health Check
-
-The container includes a built-in health check that verifies the application is responding:
-
+**Production Mode** (with Nginx reverse proxy):
 ```bash
-docker inspect --format='{{.State.Health.Status}}' sales-tracker
+./setup.sh --production
 ```
 
-## Backup & Restore
-
-### Backup Database
+**Persistent Data Mode** (recommended for production):
 ```bash
-docker exec sales-tracker sqlite3 /app/data/sales_tracker.db ".backup /tmp/backup.db"
-docker cp sales-tracker:/tmp/backup.db ./backup.db
+./setup.sh --persistent
+# Access at http://localhost:5001
 ```
 
-### Restore Database
+### Troubleshooting Database Issues
+
+If you encounter SQLite permission errors:
+
+1. **Use the in-container database** (default):
+   ```bash
+   docker run -p 5000:5000 -e DATABASE_URL=sqlite:///sales_tracker.db sales-tracker
+   ```
+
+2. **Fix local directory permissions**:
+   ```bash
+   mkdir -p data uploads
+   chmod 755 data uploads
+   ```
+
+3. **Run with persistent data**:
+   ```bash
+   ./setup.sh --persistent
+   ```
+
+### Local Development
+
+1. **Install dependencies**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. **Run the application**:
+   ```bash
+   python app.py
+   # or
+   python run.py
+   ```
+
+3. **Access at**: http://localhost:5000
+
+## Configuration
+
+### Environment Variables
+- `SECRET_KEY`: Flask secret key for sessions
+- `FLASK_ENV`: Development or production mode
+- `DATABASE_URL`: Database connection string (optional)
+
+### Default Settings
+- Default admin username: `admin`
+- Default admin password: `admin`
+- Default analytics period: Year-to-Date
+- Database: SQLite (`sales_tracker.db`)
+
+## Usage Guide
+
+### Initial Setup
+1. Access the application at http://localhost:5000
+2. Click "Admin Login" and use default credentials
+3. Go to Settings to change admin password
+4. Add employees via Management > Add Employee
+
+### Adding Sales Data
+1. Navigate to Data Entry page
+2. Select employee, enter date, revenue, and deal count
+3. Commission is calculated automatically
+4. For bulk uploads, use CSV with columns: employee_name, date, revenue_amount, number_of_deals
+
+### Viewing Analytics
+1. Analytics page shows Year-to-Date data by default
+2. Use period filter to change time range
+3. Charts update automatically
+4. Export data using the Export button
+
+### Managing Employees
+1. Access Management tab (admin login required)
+2. Add/edit employees with commission rates and draw amounts
+3. Set goals for employees by time period
+4. Configure system settings and field display options
+
+### Customizing Color Schemes
+1. **Quick Theme Switch**: Use the palette icon in the navbar to instantly change themes
+2. **Settings Panel**: Access Settings > Color Scheme for full customization
+3. **Live Preview**: See theme changes instantly with color palette preview
+4. **Theme Options**: Choose from 8 professionally designed color schemes:
+   - **Default Blue**: Classic professional blue theme
+   - **Dark Theme**: Modern dark interface with reduced eye strain
+   - **Nature Green**: Fresh green palette inspired by nature
+   - **Royal Purple**: Elegant purple scheme for premium feel
+   - **Sunset Orange**: Warm orange tones for energy and creativity
+   - **Ocean Teal**: Calming teal colors for focus and clarity
+   - **Corporate Red**: Bold red theme for dynamic environments
+   - **Modern Pink**: Contemporary pink palette for modern aesthetics
+5. **Persistent Settings**: Admin theme preferences are saved to database
+6. **Guest Themes**: Non-admin users can use localStorage for temporary theme preferences
+
+## File Structure
+
+```
+sales-tracker/
+├── app.py                 # Main Flask application
+├── requirements.txt       # Python dependencies
+├── Dockerfile            # Docker configuration
+├── docker-compose.yml    # Docker Compose setup
+├── nginx.conf            # Nginx reverse proxy config
+├── templates/            # HTML templates
+│   ├── base.html         # Base template
+│   ├── login.html        # Admin login
+│   ├── analytics.html    # Analytics dashboard
+│   ├── data_entry.html   # Sales data entry
+│   ├── management.html   # Employee management
+│   ├── add_employee.html # Add employee form
+│   ├── edit_employee.html# Edit employee form
+│   └── settings.html     # System settings
+├── uploads/              # CSV upload directory
+└── data/                 # Database storage
+```
+
+## API Endpoints
+
+- `GET /api/sales_data?period=YTD` - Sales data for charts
+- `GET /api/trends_data` - Historical trends data  
+- `POST /bulk_upload` - CSV bulk upload
+
+## Security Features
+
+- Password hashing with Werkzeug
+- CSRF protection on all forms
+- Session-based authentication
+- Input validation and sanitization
+- SQL injection prevention via SQLAlchemy ORM
+
+## Performance Features
+
+- Responsive Bootstrap 5 design
+- Mobile-friendly interface
+- Efficient database queries
+- Chart.js for smooth visualizations
+- Docker containerization for easy deployment
+
+## Maintenance
+
+### Database Backup
 ```bash
-docker cp ./backup.db sales-tracker:/tmp/backup.db
-docker exec sales-tracker sqlite3 /app/data/sales_tracker.db ".restore /tmp/backup.db"
+docker exec sales-tracker-app sqlite3 /app/sales_tracker.db ".backup /app/data/backup.db"
 ```
 
-## Supported Architectures
-
-- `linux/amd64` - Standard x86-64
-- `linux/arm64` - ARM 64-bit (Apple Silicon, AWS Graviton)
-
-## Features Not Yet Implemented
-
-The following features show placeholder messages and are not yet functional:
-
-### Management Page ('/management')
-- **Settings** - "Settings" button (shows placeholder alert)
-- **Payroll Reports** - "Generate Payroll Report" button (shows placeholder alert)
-
-### System Settings ('/settings')
-- **System Settings Page** - In the menu bar under System > System Settings the link leads to a 404 page
-
-The UI elements are in place but the backend functionality needs to be implemented.
-
-## Security Considerations
-
-1. **Change default credentials** immediately after deployment
-2. **Use strong SECRET_KEY** in production
-3. **Enable HTTPS** with a reverse proxy
-4. **Regular backups** of the database
-5. **Update regularly** for security patches
-
-## Troubleshooting
-
-### Container won't start
+### Updating the Application
 ```bash
-docker logs sales-tracker
+docker-compose down
+docker-compose up --build
 ```
 
-### Reset admin password
+### Logs
 ```bash
-docker exec -it sales-tracker python -c "
-from app import app, db, User
-with app.app_context():
-    admin = User.query.filter_by(username='admin').first()
-    if admin:
-        admin.set_password('new_password')
-        db.session.commit()
-        print('Password reset successfully')
-"
+docker-compose logs -f sales-tracker
 ```
 
-### Database initialization issues
-```bash
-docker exec -it sales-tracker python -c "
-from app import app, db
-with app.app_context():
-    db.create_all()
-    print('Database initialized')
-"
-```
+## Contributing
 
-## Source Code
-
-- **GitHub:** [tebwritescode/sales-tracker](https://github.com/tebwritescode/sales-tracker)
-- **Docker Hub:** [tebwritescode/sales-tracker](https://hub.docker.com/r/tebwritescode/sales-tracker)
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and test
+4. Submit a pull request
 
 ## License
 
-MIT License
+Built with Flask & Bootstrap. © 2024 Sales Tracker.
 
-## Author
+## Support
 
-**tebwritescode**  
-Website: [https://tebwrites.code](https://tebwrites.code)
-
-## Version
-
-Current Version: `1.2.0`
+For issues and questions, please create an issue in the repository or contact [tebbydog0605](https://github.com/tebbydog0605).
 
 ---
 
-*For issues, feature requests, or contributions, please visit the [GitHub repository](https://github.com/tebwritescode/sales-tracker).*
+**Created by**: [tebbydog0605](https://github.com/tebbydog0605)  
+**Docker Hub**: [tebwritescode](https://hub.docker.com/u/tebwritescode)  
+**Website**: [tebwrites.code](https://tebwrites.code)
