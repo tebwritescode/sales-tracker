@@ -198,7 +198,7 @@ MIT License
 ## Author
 
 **tebwritescode**  
-Website: [https://tebwrites.code](https://tebwrites.code)
+Website: [[https://tebwrites.code](https://tebwrites.code)](https://teb.codes/)
 
 ## Version
 
