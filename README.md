@@ -1,10 +1,3 @@
-# TODO: Notes to Self
-- Within the docker container, the path for the database file is actually /app/instance; spent too much API trying to track this down already, not worried about it for now until this goes actually approved
-- Versioning is app.py:18 and templates/base.html:578
-- Dont forget to deal with tagging properly in docker
-- use dev tag for development use $(date +%m%d%y%H%M) before updating latest use latest for working only
-
-
 # Sales Tracker v1.0.0
 
 A comprehensive Flask web application for tracking sales performance, managing employees, and analyzing business metrics.
