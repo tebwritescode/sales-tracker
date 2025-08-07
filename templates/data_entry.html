@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Data Entry - Sales Tracker{% endblock %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-12">
+        <h2><i class="fas fa-plus-circle me-2"></i>Sales Data Entry</h2>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Manual Entry Form -->
+    <div class="col-lg-6">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-edit me-2"></i>Manual Entry</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.user_id.label(class="form-label") }}
+                        {{ form.user_id(class="form-select") }}
+                        {% if form.user_id.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.user_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.date.label(class="form-label") }}
+                        {{ form.date(class="form-control") }}
+                        {% if form.date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.revenue_amount.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.revenue_amount(class="form-control", step="0.01", placeholder="0.00") }}
+                        </div>
+                        {% if form.revenue_amount.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.revenue_amount.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.number_of_deals.label(class="form-label") }}
+                        {{ form.number_of_deals(class="form-control", min="1", value="1") }}
+                        {% if form.number_of_deals.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.number_of_deals.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.draw_payment.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.draw_payment(class="form-control", step="0.01", placeholder="0.00") }}
+                        </div>
+                        {% if form.draw_payment.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.draw_payment.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-1"></i>Add Sales Record
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bulk Upload -->
+    <div class="col-lg-6">
+        <div class="card dashboard-card">
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-upload me-2"></i>Bulk Upload (CSV)</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('bulk_upload') }}">
+                    {{ bulk_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">CSV File Format</label>
+                        <div class="alert alert-info small">
+                            <strong>Required columns:</strong><br>
+                            • employee_name<br>
+                            • date (YYYY-MM-DD)<br>
+                            • revenue_amount<br>
+                            • number_of_deals<br>
+                            <strong>Optional:</strong> draw_payment
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ bulk_form.file.label(class="form-label") }}
+                        {{ bulk_form.file(class="form-control", accept=".csv") }}
+                        {% if bulk_form.file.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in bulk_form.file.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-upload me-1"></i>Upload CSV
+                    </button>
+                </form>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <a href="#" onclick="downloadTemplate()" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-download me-1"></i>Download Template
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Sales -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>Recent Sales Records</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Employee</th>
+                                <th>Revenue</th>
+                                <th>Deals</th>
+                                <th>Commission</th>
+                                <th>Draw Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in recent_sales %}
+                            <tr>
+                                <td>{{ sale.date.strftime('%Y-%m-%d') }}</td>
+                                <td><strong>{{ sale.user.first_name }} {{ sale.user.last_name }}</strong></td>
+                                <td>${{ "%.2f"|format(sale.revenue_amount) }}</td>
+                                <td>{{ sale.number_of_deals }}</td>
+                                <td>${{ "%.2f"|format(sale.commission_earned) }}</td>
+                                <td>${{ "%.2f"|format(sale.draw_payment) }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteSale({{ sale.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No recent sales records</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ recent_sales|length }}</h3>
+                <p class="mb-0">Recent Records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>${{ "%.0f"|format(recent_sales|sum(attribute='revenue_amount') or 0) }}</h3>
+                <p class="mb-0">Recent Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3>{{ recent_sales|sum(attribute='number_of_deals') or 0 }}</h3>
+                <p class="mb-0">Recent Deals</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>${{ "%.0f"|format(recent_sales|sum(attribute='commission_earned') or 0) }}</h3>
+                <p class="mb-0">Recent Commission</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const dateField = document.getElementById('date');
+    if (dateField && !dateField.value) {
+        const today = new Date();
+        const dateString = today.getFullYear() + '-' + 
+                          String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(today.getDate()).padStart(2, '0');
+        dateField.value = dateString;
+    }
+});
+
+// Calculate commission preview
+document.getElementById('revenue_amount').addEventListener('input', function() {
+    const revenue = parseFloat(this.value) || 0;
+    const employeeSelect = document.getElementById('user_id');
+    
+    if (employeeSelect.selectedIndex > 0) {
+        // In a real implementation, you'd fetch the commission rate
+        // For now, show a placeholder
+        console.log('Revenue changed:', revenue);
+    }
+});
+
+function downloadTemplate() {
+    const csvContent = 'employee_name,date,revenue_amount,number_of_deals,draw_payment\n' +
+                      'John Doe,2024-01-15,5000.00,2,500.00\n' +
+                      'Jane Smith,2024-01-15,3500.00,1,0.00';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'sales_upload_template.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function deleteSale(saleId) {
+    if (confirm('Are you sure you want to delete this sales record?')) {
+        // In a real implementation, you'd make an AJAX call to delete
+        console.log('Delete sale:', saleId);
+        alert('Delete functionality would be implemented here');
+    }
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const revenue = document.getElementById('revenue_amount').value;
+    const deals = document.getElementById('number_of_deals').value;
+    
+    if (!revenue || parseFloat(revenue) <= 0) {
+        e.preventDefault();
+        alert('Please enter a valid revenue amount');
+        return;
+    }
+    
+    if (!deals || parseInt(deals) <= 0) {
+        e.preventDefault();
+        alert('Please enter a valid number of deals');
+        return;
+    }
+});
+</script>
+{% endblock %}

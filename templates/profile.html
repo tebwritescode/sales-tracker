@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Sales Tracker{% endblock %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-user-circle me-2"></i>My Profile</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-user me-2"></i>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control", placeholder="Enter username") }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control", placeholder="Enter email address") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.first_name.label(class="form-label") }}
+                                {{ form.first_name(class="form-control", placeholder="Enter first name") }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.last_name.label(class="form-label") }}
+                                {{ form.last_name(class="form-control", placeholder="Enter last name") }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Employee Details Section (only show for viewer role) -->
+                    {% if current_user.role == 'viewer' %}
+                    <hr>
+                    <h6>Employee Details</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.hire_date.label(class="form-label") }}
+                                {{ form.hire_date(class="form-control") }}
+                                {% if form.hire_date.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.hire_date.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.base_salary.label(class="form-label") }}
+                                {{ form.base_salary(class="form-control", placeholder="0.00") }}
+                                {% if form.base_salary.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.base_salary.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.commission_rate.label(class="form-label") }}
+                                {{ form.commission_rate(class="form-control", placeholder="0.05") }}
+                                {% if form.commission_rate.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.commission_rate.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.draw_amount.label(class="form-label") }}
+                                {{ form.draw_amount(class="form-control", placeholder="0.00") }}
+                                {% if form.draw_amount.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.draw_amount.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <h6>Change Password</h6>
+                    <p class="text-muted small">Leave password fields blank to keep your current password.</p>
+                    
+                    <div class="mb-3">
+                        {{ form.current_password.label(class="form-label") }}
+                        {{ form.current_password(class="form-control", placeholder="Enter current password to change") }}
+                        {% if form.current_password.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.current_password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.new_password.label(class="form-label") }}
+                                {{ form.new_password(class="form-control", placeholder="Enter new password") }}
+                                {% if form.new_password.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.new_password.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                {{ form.confirm_password(class="form-control", placeholder="Confirm new password") }}
+                                {% if form.confirm_password.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.confirm_password.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header bg-info text-white">
+                <h6><i class="fas fa-info-circle me-2"></i>Account Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Current Role:</strong>
+                    {% if current_user.role == 'admin' %}
+                        <span class="badge bg-danger">{{ current_user.get_role_display() }}</span>
+                    {% elif current_user.role == 'manager' %}
+                        <span class="badge bg-warning">{{ current_user.get_role_display() }}</span>
+                    {% elif current_user.role == 'user' %}
+                        <span class="badge bg-success">{{ current_user.get_role_display() }}</span>
+                    {% else %}
+                        <span class="badge bg-info">{{ current_user.get_role_display() }}</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Permission Level:</strong> {{ current_user.permission_level }}
+                </div>
+                <div class="mb-3">
+                    <strong>Account Status:</strong>
+                    {% if current_user.active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Member Since:</strong><br>
+                    <small>{{ current_user.created_at.strftime('%B %d, %Y') }}</small>
+                </div>
+                <div class="mb-3">
+                    <strong>Last Login:</strong><br>
+                    {% if current_user.last_login %}
+                        <small>{{ current_user.last_login.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                    {% else %}
+                        <small class="text-muted">Never logged in</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card dashboard-card mt-3">
+            <div class="card-header bg-warning text-white">
+                <h6><i class="fas fa-shield-alt me-2"></i>Security Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li>Use a strong password with at least 6 characters</li>
+                    <li>Don't share your login credentials</li>
+                    <li>Log out when using shared computers</li>
+                    <li>Report any suspicious account activity</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const currentPassword = document.querySelector('input[name="current_password"]').value;
+    const newPassword = document.querySelector('input[name="new_password"]').value;
+    const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+    
+    // If user wants to change password
+    if (newPassword) {
+        if (!currentPassword) {
+            e.preventDefault();
+            alert('Current password is required to set a new password');
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('New passwords do not match');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            e.preventDefault();
+            alert('New password must be at least 6 characters long');
+            return;
+        }
+    }
+});
+
+// Clear related fields when current password is cleared
+document.querySelector('input[name="current_password"]').addEventListener('input', function() {
+    if (!this.value) {
+        document.querySelector('input[name="new_password"]').value = '';
+        document.querySelector('input[name="confirm_password"]').value = '';
+    }
+});
+
+// Clear confirm password when new password is cleared
+document.querySelector('input[name="new_password"]').addEventListener('input', function() {
+    if (!this.value) {
+        document.querySelector('input[name="confirm_password"]').value = '';
+    }
+});
+</script>
+{% endblock %}

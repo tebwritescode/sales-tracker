@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Management - Sales Tracker{% endblock %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-users-cog me-2"></i>Management Dashboard</h2>
+            <div class="btn-group">
+                <a href="{{ url_for('add_user') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-1"></i>Add Employee/User
+                </a>
+                <a href="{{ url_for('users') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-users me-1"></i>Manage Users
+                </a>
+                <a href="{{ url_for('settings') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-cog me-1"></i>Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Management Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ employees|selectattr('active')|list|length }}</h3>
+                <p class="mb-0">Active Employees</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3>{{ employees|rejectattr('active')|list|length }}</h3>
+                <p class="mb-0">Inactive Employees</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>${{ "%.0f"|format(employees|sum(attribute='draw_amount') or 0) }}</h3>
+                <p class="mb-0">Total Monthly Draw</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{{ "%.1f"|format((employees|sum(attribute='commission_rate') or 0) / employees|length if employees|length > 0 else 0) }}%</h3>
+                <p class="mb-0">Avg Commission Rate</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Management Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5><i class="fas fa-users me-2"></i>Employee Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Hire Date</th>
+                                <th>Status</th>
+                                <th>Commission Rate</th>
+                                <th>Draw Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr class="{% if not employee.active %}table-secondary{% endif %}">
+                                <td>
+                                    <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+                                    {% if not employee.active %}
+                                        <small class="text-muted">(Inactive)</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else 'N/A' }}</td>
+                                <td>
+                                    {% if employee.active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.1f"|format(employee.commission_rate) }}%</td>
+                                <td>${{ "%.2f"|format(employee.draw_amount) }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('edit_user', user_id=employee.id) }}" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-info" 
+                                                onclick="viewEmployeeDetails({{ employee.id }})" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-warning" 
+                                                onclick="toggleEmployeeStatus({{ employee.id }}, {{ employee.active|lower }})" 
+                                                title="{% if employee.active %}Deactivate{% else %}Activate{% endif %}">
+                                            <i class="fas fa-{% if employee.active %}pause{% else %}play{% endif %}"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No employees found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="bulkCommissionUpdate()">
+                        <i class="fas fa-percentage me-1"></i>Bulk Commission Update
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportEmployeeData()">
+                        <i class="fas fa-download me-1"></i>Export Employee Data
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="generatePayrollReport()">
+                        <i class="fas fa-file-invoice-dollar me-1"></i>Generate Payroll Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user-plus text-success me-2"></i>New employee added</span>
+                        <small class="text-muted">2 hours ago</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-edit text-primary me-2"></i>Commission rates updated</span>
+                        <small class="text-muted">1 day ago</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-cog text-warning me-2"></i>Settings modified</span>
+                        <small class="text-muted">3 days ago</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Details Modal -->
+<div class="modal fade" id="employeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Employee Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="employeeModalBody">
+                <!-- Employee details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewEmployeeDetails(employeeId) {
+    // In a real implementation, you'd fetch employee details via AJAX
+    const modalBody = document.getElementById('employeeModalBody');
+    modalBody.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading employee details...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+    modal.show();
+    
+    // Simulate loading employee details
+    setTimeout(() => {
+        modalBody.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Basic Information</h6>
+                    <p><strong>Employee ID:</strong> ${employeeId}</p>
+                    <p><strong>Name:</strong> Employee Name</p>
+                    <p><strong>Hire Date:</strong> 2024-01-15</p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Compensation</h6>
+                    <p><strong>Commission Rate:</strong> 5.0%</p>
+                    <p><strong>Draw Amount:</strong> $2,000.00</p>
+                    <p><strong>YTD Commission:</strong> $15,000.00</p>
+                    <p><strong>YTD Draw:</strong> $24,000.00</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-12">
+                    <h6>Performance Summary</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white text-center">
+                                <div class="card-body">
+                                    <h4>$125,000</h4>
+                                    <small>YTD Revenue</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white text-center">
+                                <div class="card-body">
+                                    <h4>45</h4>
+                                    <small>YTD Deals</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white text-center">
+                                <div class="card-body">
+                                    <h4>$2,778</h4>
+                                    <small>Avg Deal Size</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white text-center">
+                                <div class="card-body">
+                                    <h4>95%</h4>
+                                    <small>Goal Achievement</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 1000);
+}
+
+function toggleEmployeeStatus(employeeId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    const message = `Are you sure you want to ${action} this employee?`;
+    
+    if (confirm(message)) {
+        // In a real implementation, you'd make an AJAX call
+        console.log(`${action} employee ${employeeId}`);
+        alert(`Employee would be ${action}d. Page would refresh to show changes.`);
+    }
+}
+
+function bulkCommissionUpdate() {
+    const newRate = prompt('Enter new commission rate (%) for all employees:');
+    if (newRate && !isNaN(newRate)) {
+        if (confirm(`Set commission rate to ${newRate}% for all employees?`)) {
+            console.log('Bulk commission update:', newRate);
+            alert('Commission rates would be updated. Implementation needed.');
+        }
+    }
+}
+
+function calculateYearsEmployed(hireDateStr) {
+    const hireDate = new Date(hireDateStr);
+    const today = new Date();
+    const diffTime = Math.abs(today - hireDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return (diffDays / 365.25).toFixed(1);
+}
+
+function exportEmployeeData() {
+    // Create CSV data for employees with all fields
+    const csvData = [
+        ['ID', 'Name', 'Hire Date', 'Status', 'Commission Rate (%)', 'Draw Amount ($)', 'Years Employed']
+    ];
+    
+    {% for employee in employees %}
+    csvData.push([
+        '{{ employee.id }}',
+        '"{{ employee.name }}"',
+        '{{ employee.hire_date.strftime("%Y-%m-%d") }}',
+        '{{ "Active" if employee.active_status else "Inactive" }}',
+        '{{ "%.1f"|format(employee.commission_rate) }}',
+        '{{ "%.2f"|format(employee.draw_amount) }}',
+        calculateYearsEmployed('{{ employee.hire_date.strftime("%Y-%m-%d") }}')
+    ]);
+    {% endfor %}
+    
+    // Convert to CSV string
+    const csvString = csvData.map(row => row.join(',')).join('\n');
+    
+    // Download file
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `employees_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function generatePayrollReport() {
+    alert('Payroll report generation feature would be implemented here.');
+}
+</script>
+{% endblock %}

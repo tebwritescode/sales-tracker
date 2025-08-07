@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Add User - Sales Tracker{% endblock %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-user-plus me-2"></i>Add New User</h2>
+            <a href="{{ url_for('users') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Users
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-user me-2"></i>User Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control", placeholder="Enter username") }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control", placeholder="Enter email address") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.first_name.label(class="form-label") }}
+                                {{ form.first_name(class="form-control", placeholder="Enter first name") }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.last_name.label(class="form-label") }}
+                                {{ form.last_name(class="form-control", placeholder="Enter last name") }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.role.label(class="form-label") }}
+                        {{ form.role(class="form-select", id="roleSelect") }}
+                        {% if form.role.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.role.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Employee Details Section -->
+                    <div id="employeeDetails" style="display: none;">
+                        <hr>
+                        <h6>Employee Details</h6>
+                        <p class="text-muted small">Additional information for employees (viewer role).</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.hire_date.label(class="form-label") }}
+                                    {{ form.hire_date(class="form-control") }}
+                                    {% if form.hire_date.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.hire_date.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.base_salary.label(class="form-label") }}
+                                    {{ form.base_salary(class="form-control", placeholder="0.00") }}
+                                    {% if form.base_salary.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.base_salary.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.commission_rate.label(class="form-label") }}
+                                    {{ form.commission_rate(class="form-control", placeholder="0.05") }}
+                                    {% if form.commission_rate.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.commission_rate.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.draw_amount.label(class="form-label") }}
+                                    {{ form.draw_amount(class="form-control", placeholder="0.00") }}
+                                    {% if form.draw_amount.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.draw_amount.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.password.label(class="form-label") }}
+                                {{ form.password(class="form-control", placeholder="Enter password (min 6 characters)") }}
+                                {% if form.password.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                {{ form.confirm_password(class="form-control", placeholder="Confirm password") }}
+                                {% if form.confirm_password.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.confirm_password.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.active(class="form-check-input") }}
+                            {{ form.active.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('users') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Create User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header bg-info text-white">
+                <h6><i class="fas fa-info-circle me-2"></i>Permission Levels</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge bg-info me-2">Level 1</span>
+                    <strong>Viewer/Employee</strong>
+                    <ul class="small mt-1 mb-0">
+                        <li>View analytics and reports only</li>
+                        <li>No data entry or modification</li>
+                        <li>Includes employee details (salary, commission, etc.)</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <span class="badge bg-success me-2">Level 2</span>
+                    <strong>User</strong>
+                    <ul class="small mt-1 mb-0">
+                        <li>Enter sales data</li>
+                        <li>View analytics and reports</li>
+                        <li>Export data</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <span class="badge bg-warning me-2">Level 3</span>
+                    <strong>Manager</strong>
+                    <ul class="small mt-1 mb-0">
+                        <li>All User permissions</li>
+                        <li>Manage employees</li>
+                        <li>Access management dashboard</li>
+                        <li>Advanced reporting features</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-0">
+                    <span class="badge bg-danger me-2">Level 4</span>
+                    <strong>Administrator</strong>
+                    <ul class="small mt-1 mb-0">
+                        <li>All Manager permissions</li>
+                        <li>User management</li>
+                        <li>System settings</li>
+                        <li>Full system access</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card dashboard-card mt-3">
+            <div class="card-header bg-warning text-white">
+                <h6><i class="fas fa-shield-alt me-2"></i>Security Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li>Use strong passwords (min 6 characters)</li>
+                    <li>Assign minimum required permission level</li>
+                    <li>Review user accounts regularly</li>
+                    <li>Deactivate accounts when no longer needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Show/hide employee details based on role selection
+document.getElementById('roleSelect').addEventListener('change', function() {
+    const employeeDetails = document.getElementById('employeeDetails');
+    if (this.value === 'viewer') {
+        employeeDetails.style.display = 'block';
+    } else {
+        employeeDetails.style.display = 'none';
+    }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('roleSelect');
+    const employeeDetails = document.getElementById('employeeDetails');
+    if (roleSelect.value === 'viewer') {
+        employeeDetails.style.display = 'block';
+    }
+});
+
+// Password strength indicator
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const strength = getPasswordStrength(password);
+    // Add visual feedback if needed
+});
+
+function getPasswordStrength(password) {
+    let score = 0;
+    if (password.length >= 6) score++;
+    if (password.match(/[a-z]/)) score++;
+    if (password.match(/[A-Z]/)) score++;
+    if (password.match(/[0-9]/)) score++;
+    if (password.match(/[^a-zA-Z0-9]/)) score++;
+    return score;
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match');
+        return;
+    }
+    
+    if (password.length < 6) {
+        e.preventDefault();
+        alert('Password must be at least 6 characters long');
+        return;
+    }
+});
+</script>
+{% endblock %}

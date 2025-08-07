@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  sales-tracker:
+    build: .
+    container_name: sales-tracker-app
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=4e800dd12b8845cbe573c9e7b41101f889b156a7c6b2d0ddef33df084b6cd7607312bc7ef3d456d5f01ab570293bfd5c3a06920beb64800d52109d70f1bce331
+      - DATABASE_URL=sqlite:///sales_tracker.db
+      - SQLALCHEMY_TRACK_MODIFICATIONS=false
+      - UPLOAD_FOLDER=uploads
+      - MAX_CONTENT_LENGTH=16777216
+    volumes:
+      - ./data:/app/instance
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Production setup with persistent data
+  sales-tracker-persistent:
+    build: .
+    container_name: sales-tracker-persistent
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=4e800dd12b8845cbe573c9e7b41101f889b156a7c6b2d0ddef33df084b6cd7607312bc7ef3d456d5f01ab570293bfd5c3a06920beb64800d52109d70f1bce331
+      - DATABASE_URL=sqlite:///sales_tracker.db
+      - SQLALCHEMY_TRACK_MODIFICATIONS=false
+      - UPLOAD_FOLDER=uploads
+      - MAX_CONTENT_LENGTH=16777216
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    profiles:
+      - persistent
+    user: "1000:1000"  # Use host user ID to avoid permission issues
+
+  # Optional: Add a reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: sales-tracker-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - sales-tracker
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  sales_data:
+    driver: local
+  sales_uploads:
+    driver: local

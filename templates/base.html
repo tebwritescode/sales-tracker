@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sales Tracker{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS Variables for Color Schemes */
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --navbar-bg: var(--primary-color);
+            --card-shadow: rgba(0,0,0,0.1);
+            --text-color: #212529;
+            --bg-color: #ffffff;
+            --sidebar-bg: #f8f9fa;
+        }
+
+        /* Color Scheme Definitions */
+        [data-theme="default"] {
+            --primary-color: #0d6efd;
+            --navbar-bg: #0d6efd;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #375a7f;
+            --secondary-color: #444;
+            --success-color: #00bc8c;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --light-color: #303030;
+            --dark-color: #222;
+            --navbar-bg: #375a7f;
+            --card-shadow: rgba(0,0,0,0.3);
+            --text-color: #ffffff;
+            --bg-color: #222222;
+            --sidebar-bg: #303030;
+        }
+
+        [data-theme="green"] {
+            --primary-color: #28a745;
+            --navbar-bg: #28a745;
+            --success-color: #20c997;
+            --info-color: #20c997;
+        }
+
+        [data-theme="purple"] {
+            --primary-color: #6f42c1;
+            --navbar-bg: #6f42c1;
+            --success-color: #e83e8c;
+            --info-color: #6f42c1;
+        }
+
+        [data-theme="orange"] {
+            --primary-color: #fd7e14;
+            --navbar-bg: #fd7e14;
+            --success-color: #20c997;
+            --warning-color: #ffc107;
+        }
+
+        [data-theme="teal"] {
+            --primary-color: #20c997;
+            --navbar-bg: #20c997;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+        }
+
+        [data-theme="red"] {
+            --primary-color: #dc3545;
+            --navbar-bg: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #fd7e14;
+        }
+
+        [data-theme="pink"] {
+            --primary-color: #e83e8c;
+            --navbar-bg: #e83e8c;
+            --success-color: #20c997;
+            --info-color: #6f42c1;
+        }
+
+        /* Apply theme variables */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .navbar {
+            background-color: var(--navbar-bg) !important;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+
+        .bg-success {
+            background-color: var(--success-color) !important;
+        }
+
+        .bg-warning {
+            background-color: var(--warning-color) !important;
+        }
+
+        .bg-info {
+            background-color: var(--info-color) !important;
+        }
+
+        .bg-danger {
+            background-color: var(--danger-color) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            opacity: 0.9;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--card-shadow);
+            background-color: var(--bg-color);
+            border: 1px solid rgba(0,0,0,0.125);
+        }
+
+        [data-theme="dark"] .dashboard-card {
+            background-color: var(--light-color);
+            border-color: #444;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--sidebar-bg);
+        }
+        
+        .content-area {
+            padding: 20px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .metric-label {
+            opacity: 0.9;
+        }
+
+        /* Card headers */
+        .card-header {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        .card-header.bg-success {
+            background-color: var(--success-color) !important;
+        }
+
+        .card-header.bg-warning {
+            background-color: var(--warning-color) !important;
+        }
+
+        .card-header.bg-info {
+            background-color: var(--info-color) !important;
+        }
+
+        .card-header.bg-secondary {
+            background-color: var(--secondary-color) !important;
+        }
+
+        .card-header.bg-danger {
+            background-color: var(--danger-color) !important;
+        }
+
+        /* Tables in dark theme */
+        [data-theme="dark"] .table {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > td {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        /* Forms in dark theme */
+        [data-theme="dark"] .form-control {
+            background-color: var(--light-color);
+            border-color: #444;
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .form-control:focus {
+            background-color: var(--light-color);
+            border-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .form-select {
+            background-color: var(--light-color);
+            border-color: #444;
+            color: var(--text-color);
+        }
+
+        /* Alert in dark theme */
+        [data-theme="dark"] .alert {
+            background-color: var(--light-color);
+            border-color: #444;
+            color: var(--text-color);
+        }
+
+        /* Theme transition animation */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Footer styling for themes */
+        footer {
+            border-color: var(--secondary-color) !important;
+        }
+
+        [data-theme="dark"] footer {
+            background-color: var(--light-color) !important;
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] footer a {
+            color: var(--primary-color);
+        }
+
+        /* Blur effect for logged-out users */
+        .content-blur {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+            position: relative;
+        }
+
+        .content-blur::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+
+        /* Full screen login background for blur overlay */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: transparent; /* No background since content is already blurred */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        /* Moving login box */
+        .login-box {
+            width: 300px;
+            max-width: 85vw;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+            position: relative;
+            overflow: visible; /* Allow button to escape */
+            z-index: 1001;
+        }
+        
+        /* Expanded state for larger login box */
+        .login-box.expanded {
+            width: 450px;
+            max-width: 90vw;
+        }
+        
+        /* Collapsed state - only button visible */
+        .login-box.collapsed {
+            width: auto;
+            height: auto;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        
+        .login-box.collapsed .login-header {
+            display: none;
+        }
+        
+        .login-box.collapsed .login-body {
+            padding: 0;
+            background: transparent;
+        }
+        
+        .login-box.collapsed .form-fields {
+            max-height: 0;
+            opacity: 0;
+            transform: scale(0.8) translateY(-20px);
+            overflow: hidden;
+            margin: 0;
+            pointer-events: none;
+        }
+        
+        /* Expanded state animations */
+        .login-box.expanded .form-fields {
+            max-height: 500px;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .form-fields {
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .login-button-container {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Collapsed button state */
+        .login-box.collapsed .login-button-container {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-button-container.avoiding-mouse {
+            /* No transition - using JS animation instead */
+            z-index: 10000 !important;
+        }
+        
+        /* Evasive button styles */
+        .btn-xl.evasive {
+            cursor: default !important;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Teleport animation */
+        @keyframes teleport {
+            0% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(0) rotate(180deg);
+                opacity: 0.5;
+            }
+            100% { 
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+        
+        .login-button-container.teleporting {
+            animation: teleport 0.4s ease-in-out;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .login-body {
+            padding: 1.5rem;
+            position: relative;
+            min-height: 400px; /* Increased space for button movement */
+            overflow: visible; /* Allow button to move outside */
+        }
+        
+        .form-control-xl {
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control-xl:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .btn-xl {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-xl:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3);
+        }
+        
+        .btn-xl:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Dark theme adjustments */
+        [data-theme="dark"] .login-box {
+            background: rgba(34, 34, 34, 0.95);
+            color: var(--text-color);
+        }
+        
+        /* Add shake animation */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-5px, -5px) rotate(-2deg); }
+            50% { transform: translate(5px, -5px) rotate(2deg); }
+            75% { transform: translate(-5px, 5px) rotate(-1deg); }
+        }
+
+        /* Ensure navbar and footer are not blurred */
+        .navbar, footer {
+            position: relative;
+            z-index: 100;
+        }
+        
+        /* Fix dropdown menu positioning to stay within viewport */
+        .navbar .dropdown-menu {
+            position: absolute;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        /* Ensure theme dropdown aligns to the right to stay in viewport */
+        #themeDropdown + .dropdown-menu {
+            right: 0;
+            left: auto;
+        }
+        
+        /* Responsive dropdown positioning */
+        @media (max-width: 991.98px) {
+            .navbar .dropdown-menu {
+                position: static;
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+    </style>
+</head>
+<body data-theme="{{ current_color_scheme }}">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('analytics') }}">
+                <i class="fas fa-chart-line me-2"></i>Sales Tracker
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'analytics' %}active{% endif %}" href="{{ url_for('analytics') }}">
+                            <i class="fas fa-chart-bar me-1"></i>Analytics
+                        </a>
+                    </li>
+                    {% if current_user and current_user.has_permission(2) %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'data_entry' %}active{% endif %}" href="{{ url_for('data_entry') }}">
+                            <i class="fas fa-plus-circle me-1"></i>Data Entry
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if current_user and current_user.has_permission(3) %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'management' %}active{% endif %}" href="{{ url_for('management') }}">
+                            <i class="fas fa-users-cog me-1"></i>Management
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if current_user and current_user.has_permission(4) %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'users' %}active{% endif %}" href="{{ url_for('users') }}">
+                            <i class="fas fa-users me-1"></i>Users
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" title="Change Theme">
+                            <i class="fas fa-palette me-1"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Color Schemes</h6></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="default"><i class="fas fa-circle me-2" style="color: #0d6efd;"></i>Default Blue</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="dark"><i class="fas fa-circle me-2" style="color: #375a7f;"></i>Dark Theme</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="green"><i class="fas fa-circle me-2" style="color: #28a745;"></i>Nature Green</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="purple"><i class="fas fa-circle me-2" style="color: #6f42c1;"></i>Royal Purple</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="orange"><i class="fas fa-circle me-2" style="color: #fd7e14;"></i>Sunset Orange</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="teal"><i class="fas fa-circle me-2" style="color: #20c997;"></i>Ocean Teal</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="red"><i class="fas fa-circle me-2" style="color: #dc3545;"></i>Corporate Red</a></li>
+                            <li><a class="dropdown-item theme-option" href="#" data-theme="pink"><i class="fas fa-circle me-2" style="color: #e83e8c;"></i>Modern Pink</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="fas fa-cog me-1"></i>More Settings</a></li>
+                        </ul>
+                    </li>
+                    {% if current_user %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            {% if current_user.role == 'admin' %}
+                                <i class="fas fa-user-shield me-1"></i>
+                            {% elif current_user.role == 'manager' %}
+                                <i class="fas fa-user-tie me-1"></i>
+                            {% else %}
+                                <i class="fas fa-user me-1"></i>
+                            {% endif %}
+                            {{ current_user.first_name }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">{{ current_user.first_name }} {{ current_user.last_name }}</h6></li>
+                            <li><small class="dropdown-item-text text-muted">{{ current_user.get_role_display() }} - Level {{ current_user.permission_level }}</small></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user-circle me-1"></i>My Profile</a></li>
+                            {% if current_user.has_permission(4) %}
+                            <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="fas fa-cog me-1"></i>System Settings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('users') }}"><i class="fas fa-users me-1"></i>User Management</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('analytics') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid{% if show_blur %} content-blur{% endif %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Login Box for Blurred Content -->
+    {% if show_blur and login_form %}
+    <div class="login-container">
+        <div class="login-box collapsed" id="loginBox">
+            <div class="login-header">
+                <h4><i class="fas fa-chart-line me-2"></i>Sales Tracker</h4>
+            </div>
+            
+            <div class="login-body">
+                <form method="POST" action="{{ url_for('new_login') }}" id="loginForm">
+                    <div class="form-fields" id="formFields">
+                        {% if login_form %}
+                            {{ login_form.hidden_tag() }}
+                            
+                            <div class="mb-4">
+                                {{ login_form.username.label(class="form-label fw-semibold") }}
+                                {{ login_form.username(class="form-control form-control-xl", placeholder="Enter your username", id="usernameField") }}
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ login_form.password.label(class="form-label fw-semibold") }}
+                                {{ login_form.password(class="form-control form-control-xl", placeholder="Enter your password", id="passwordField") }}
+                            </div>
+                        {% else %}
+                            <div class="mb-4">
+                                <label for="usernameField" class="form-label fw-semibold">Username</label>
+                                <input type="text" name="username" class="form-control form-control-xl" placeholder="Enter your username" id="usernameField" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="passwordField" class="form-label fw-semibold">Password</label>
+                                <input type="password" name="password" class="form-control form-control-xl" placeholder="Enter your password" id="passwordField" required>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid" id="loginButtonContainer">
+                        <button type="submit" class="btn btn-primary btn-xl" id="loginButton">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer with Version and Attribution -->
+    <footer class="mt-5 py-4 bg-light text-center border-top">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-md-start">
+                    <small class="text-muted">
+                        <strong>Sales Tracker v1.1.0</strong><br>
+                        Created by <a href="https://github.com/tebwritescode" target="_blank" class="text-decoration-none">tebwritescode</a><br>
+                        Docker: <a href="https://hub.docker.com/u/tebwritescode" target="_blank" class="text-decoration-none">tebwritescode</a><br>
+                        Website: <a href="https://tebwrites.code" target="_blank" class="text-decoration-none">tebwrites.code</a>
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        &copy; 2025 Sales Tracker. Built with Flask & Bootstrap.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Login box interactive functionality - COMPLETE REWRITE
+        function initializeLoginBox() {
+            const loginBox = document.getElementById('loginBox');
+            const buttonContainer = document.getElementById('loginButtonContainer');
+            const signInBtn = document.getElementById('loginButton');
+            const usernameField = document.getElementById('usernameField');
+            const passwordField = document.getElementById('passwordField');
+            const formFields = document.getElementById('formFields');
+            
+            let isExpanded = false;
+            let mouseNearTimer = null;
+            let mouseAwayTimer = null;
+            let isButtonEvasive = false;
+            let buttonPosition = { x: 0, y: 0 };
+            let targetButtonPos = { x: 0, y: 0 };
+            let originalButtonPos = null;
+            let animationsDisabled = false;
+            let lastMouseX = 0;
+            let lastMouseY = 0;
+            let mouseSpeed = 0;
+            
+            // Check if both fields have at least one character
+            function areFieldsFilled() {
+                const hasUsername = usernameField.value.length > 0;
+                const hasPassword = passwordField.value.length > 0;
+                return hasUsername && hasPassword;
+            }
+            
+            // Expand the login box
+            function expandLoginBox() {
+                if (!isExpanded && !animationsDisabled) {
+                    isExpanded = true;
+                    loginBox.classList.remove('collapsed');
+                    loginBox.classList.add('expanded');
+                    
+                    // Wait for expansion animation then make button evasive
+                    setTimeout(() => {
+                        if (!areFieldsFilled()) {
+                            startButtonEvasion();
+                        }
+                        // Focus username field after expansion
+                        usernameField.focus();
+                    }, 500);
+                }
+            }
+            
+            // Collapse the login box
+            function collapseLoginBox() {
+                if (isExpanded && !animationsDisabled && !areFieldsFilled()) {
+                    isExpanded = false;
+                    loginBox.classList.add('collapsed');
+                    loginBox.classList.remove('expanded');
+                    stopButtonEvasion();
+                    
+                    // Clear input fields when collapsing
+                    usernameField.value = '';
+                    passwordField.value = '';
+                }
+            }
+            
+            // Start button evasion behavior
+            function startButtonEvasion() {
+                if (!isButtonEvasive && isExpanded && !areFieldsFilled()) {
+                    isButtonEvasive = true;
+                    signInBtn.classList.add('evasive');
+                    buttonContainer.classList.add('avoiding-mouse');
+                    
+                    // Store initial position
+                    const rect = buttonContainer.getBoundingClientRect();
+                    const bodyRect = loginBox.querySelector('.login-body').getBoundingClientRect();
+                    originalButtonPos = {
+                        x: rect.left - bodyRect.left,
+                        y: rect.top - bodyRect.top
+                    };
+                    
+                    // Start animation
+                    if (!animationFrame) {
+                        animateButton();
+                    }
+                }
+            }
+            
+            // Stop button evasion
+            function stopButtonEvasion() {
+                if (isButtonEvasive) {
+                    isButtonEvasive = false;
+                    signInBtn.classList.remove('evasive');
+                    buttonContainer.classList.remove('avoiding-mouse');
+                    
+                    // Cancel animation
+                    if (animationFrame) {
+                        cancelAnimationFrame(animationFrame);
+                        animationFrame = null;
+                    }
+                    
+                    // Reset button position
+                    buttonContainer.style.position = '';
+                    buttonContainer.style.left = '';
+                    buttonContainer.style.top = '';
+                    buttonContainer.style.transform = '';
+                    originalButtonPos = null;
+                }
+            }
+            
+            // Animation frame reference
+            let animationFrame = null;
+            let mouseX = 0;
+            let mouseY = 0;
+            
+            // Animate button movement with dynamic speed scaling
+            function animateButton() {
+                if (!isButtonEvasive || areFieldsFilled()) {
+                    stopButtonEvasion();
+                    return;
+                }
+                
+                const btnRect = buttonContainer.getBoundingClientRect();
+                const bodyRect = loginBox.querySelector('.login-body').getBoundingClientRect();
+                
+                // Check if mouse is over the button (rectangle collision)
+                const mouseOverButton = (
+                    mouseX >= btnRect.left &&
+                    mouseX <= btnRect.right &&
+                    mouseY >= btnRect.top &&
+                    mouseY <= btnRect.bottom
+                );
+                
+                // Calculate distance from mouse to button center
+                const btnCenterX = btnRect.left + btnRect.width / 2;
+                const btnCenterY = btnRect.top + btnRect.height / 2;
+                const distance = Math.sqrt(
+                    Math.pow(mouseX - btnCenterX, 2) + 
+                    Math.pow(mouseY - btnCenterY, 2)
+                );
+                
+                // Get current position relative to body
+                let currentLeft = parseFloat(buttonContainer.style.left) || originalButtonPos.x || 0;
+                let currentTop = parseFloat(buttonContainer.style.top) || originalButtonPos.y || 0;
+                
+                // Check critical proximity thresholds
+                if (mouseOverButton || distance <= 1) {
+                    // Mouse is over button or within 1 pixel: immediately jump away
+                    // Check if trapped in corner
+                    const isInCorner = (
+                        (currentLeft <= 20 || currentLeft >= bodyRect.width - btnRect.width - 20) &&
+                        (currentTop <= 20 || currentTop >= bodyRect.height - btnRect.height - 20)
+                    );
+                    
+                    if (isInCorner || mouseOverButton) {
+                        // Jump to safe position away from mouse
+                        const safeX = mouseX < bodyRect.left + bodyRect.width/2 ? 
+                            bodyRect.width - btnRect.width - 20 : 20;
+                        const safeY = mouseY < bodyRect.top + bodyRect.height/2 ? 
+                            bodyRect.height - btnRect.height - 20 : 20;
+                        
+                        currentLeft = safeX;
+                        currentTop = safeY;
+                        // Reset target to prevent follow behavior
+                        targetButtonPos.x = safeX;
+                        targetButtonPos.y = safeY;
+                    } else {
+                        // Jump to home if not in corner
+                        currentLeft = originalButtonPos.x;
+                        currentTop = originalButtonPos.y;
+                        // Reset target to prevent follow behavior
+                        targetButtonPos.x = originalButtonPos.x;
+                        targetButtonPos.y = originalButtonPos.y;
+                    }
+                    
+                    buttonContainer.style.left = currentLeft + 'px';
+                    buttonContainer.style.top = currentTop + 'px';
+                } else if (distance <= 5) {
+                    // Within 5 pixels: gradually increase speed to match mouse speed
+                    const angle = Math.atan2(btnCenterY - mouseY, btnCenterX - mouseX);
+                    
+                    // Scale movement based on mouse speed and proximity
+                    const speedMultiplier = Math.max(1, mouseSpeed * 0.5);
+                    const proximityForce = (5 - distance) / 5;
+                    const moveDistance = proximityForce * speedMultiplier * 15;
+                    
+                    // Calculate target position
+                    targetButtonPos.x = currentLeft + Math.cos(angle) * moveDistance;
+                    targetButtonPos.y = currentTop + Math.sin(angle) * moveDistance;
+                    
+                    // Keep within bounds with larger area
+                    const maxX = bodyRect.width - btnRect.width - 10;
+                    const maxY = bodyRect.height - btnRect.height - 10;
+                    
+                    targetButtonPos.x = Math.max(10, Math.min(maxX, targetButtonPos.x));
+                    targetButtonPos.y = Math.max(10, Math.min(maxY, targetButtonPos.y));
+                    
+                    // Apply with high responsiveness
+                    currentLeft += (targetButtonPos.x - currentLeft) * 0.8;
+                    currentTop += (targetButtonPos.y - currentTop) * 0.8;
+                    
+                    buttonContainer.style.position = 'absolute';
+                    buttonContainer.style.left = currentLeft + 'px';
+                    buttonContainer.style.top = currentTop + 'px';
+                } else if (distance < 200) {
+                    // Normal evasion zone (5-200px): regular movement
+                    const angle = Math.atan2(btnCenterY - mouseY, btnCenterX - mouseX);
+                    const force = Math.max(0, (200 - distance) / 200);
+                    const moveDistance = force * 25;
+                    
+                    // Calculate target position
+                    targetButtonPos.x = currentLeft + Math.cos(angle) * moveDistance;
+                    targetButtonPos.y = currentTop + Math.sin(angle) * moveDistance;
+                    
+                    // Keep within bounds
+                    const maxX = bodyRect.width - btnRect.width - 10;
+                    const maxY = bodyRect.height - btnRect.height - 10;
+                    
+                    targetButtonPos.x = Math.max(10, Math.min(maxX, targetButtonPos.x));
+                    targetButtonPos.y = Math.max(10, Math.min(maxY, targetButtonPos.y));
+                    
+                    // Smooth movement
+                    currentLeft += (targetButtonPos.x - currentLeft) * 0.3;
+                    currentTop += (targetButtonPos.y - currentTop) * 0.3;
+                    
+                    buttonContainer.style.position = 'absolute';
+                    buttonContainer.style.left = currentLeft + 'px';
+                    buttonContainer.style.top = currentTop + 'px';
+                } else {
+                    // Far from mouse: slowly return to home position
+                    const homeX = originalButtonPos.x;
+                    const homeY = originalButtonPos.y;
+                    
+                    // Update target to home for smooth return
+                    targetButtonPos.x = homeX;
+                    targetButtonPos.y = homeY;
+                    
+                    currentLeft += (homeX - currentLeft) * 0.08;
+                    currentTop += (homeY - currentTop) * 0.08;
+                    
+                    buttonContainer.style.position = 'absolute';
+                    buttonContainer.style.left = currentLeft + 'px';
+                    buttonContainer.style.top = currentTop + 'px';
+                }
+                
+                // Continue animation
+                animationFrame = requestAnimationFrame(animateButton);
+            }
+            
+            // Check proximity to button/box
+            function checkMouseProximity(e) {
+                // Calculate mouse speed
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                mouseSpeed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Update mouse position
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                const boxRect = loginBox.getBoundingClientRect();
+                const buttonRect = buttonContainer.getBoundingClientRect();
+                
+                // Calculate distance to box
+                const nearBox = (
+                    e.clientX >= boxRect.left - 50 &&
+                    e.clientX <= boxRect.right + 50 &&
+                    e.clientY >= boxRect.top - 50 &&
+                    e.clientY <= boxRect.bottom + 50
+                );
+                
+                // Calculate distance to button (when collapsed)
+                const nearButton = !isExpanded && (
+                    e.clientX >= buttonRect.left - 30 &&
+                    e.clientX <= buttonRect.right + 30 &&
+                    e.clientY >= buttonRect.top - 30 &&
+                    e.clientY <= buttonRect.bottom + 30
+                );
+                
+                if (nearBox || nearButton) {
+                    // Clear away timer
+                    if (mouseAwayTimer) {
+                        clearTimeout(mouseAwayTimer);
+                        mouseAwayTimer = null;
+                    }
+                    
+                    // Start near timer if not already expanded
+                    if (!isExpanded && !mouseNearTimer) {
+                        mouseNearTimer = setTimeout(() => {
+                            expandLoginBox();
+                            mouseNearTimer = null;
+                        }, 100); // Quick response to mouse proximity
+                    }
+                } else {
+                    // Clear near timer
+                    if (mouseNearTimer) {
+                        clearTimeout(mouseNearTimer);
+                        mouseNearTimer = null;
+                    }
+                    
+                    // Start away timer if expanded
+                    if (isExpanded && !mouseAwayTimer && !areFieldsFilled()) {
+                        mouseAwayTimer = setTimeout(() => {
+                            collapseLoginBox();
+                            mouseAwayTimer = null;
+                        }, 5000); // 5 second timeout
+                    }
+                }
+                
+                // No need to call moveButtonAway since animation loop handles it
+            }
+            
+            // Check fields and stop animations if filled
+            function checkFieldsAndStopAnimations() {
+                if (areFieldsFilled()) {
+                    animationsDisabled = true;
+                    stopButtonEvasion();
+                    
+                    // Clear all timers
+                    if (mouseAwayTimer) {
+                        clearTimeout(mouseAwayTimer);
+                        mouseAwayTimer = null;
+                    }
+                    if (mouseNearTimer) {
+                        clearTimeout(mouseNearTimer);
+                        mouseNearTimer = null;
+                    }
+                    
+                    // Ensure box stays expanded
+                    if (!isExpanded) {
+                        expandLoginBox();
+                    }
+                } else {
+                    animationsDisabled = false;
+                    // Restart evasion if box is expanded
+                    if (isExpanded) {
+                        startButtonEvasion();
+                    }
+                }
+            }
+            
+            // Event Listeners
+            document.addEventListener('mousemove', checkMouseProximity);
+            
+            // Monitor input fields
+            usernameField.addEventListener('input', checkFieldsAndStopAnimations);
+            passwordField.addEventListener('input', checkFieldsAndStopAnimations);
+            
+            // Handle button mouseover - immediately escape
+            signInBtn.addEventListener('mouseenter', function(e) {
+                if (isButtonEvasive && !areFieldsFilled()) {
+                    e.preventDefault();
+                    
+                    // Jump to random safe position
+                    const bodyRect = loginBox.querySelector('.login-body').getBoundingClientRect();
+                    const btnRect = buttonContainer.getBoundingClientRect();
+                    
+                    const maxX = bodyRect.width - btnRect.width - 20;
+                    const maxY = bodyRect.height - btnRect.height - 20;
+                    
+                    // Generate random position far from mouse
+                    let newX, newY;
+                    let attempts = 0;
+                    do {
+                        newX = Math.random() * maxX + 10;
+                        newY = Math.random() * maxY + 10;
+                        
+                        const distFromMouse = Math.sqrt(
+                            Math.pow(mouseX - (bodyRect.left + newX + btnRect.width/2), 2) +
+                            Math.pow(mouseY - (bodyRect.top + newY + btnRect.height/2), 2)
+                        );
+                        
+                        if (distFromMouse > 150 || attempts++ > 10) break;
+                    } while (true);
+                    
+                    // Reset target to prevent follow behavior
+                    targetButtonPos.x = newX;
+                    targetButtonPos.y = newY;
+                    
+                    buttonContainer.style.left = newX + 'px';
+                    buttonContainer.style.top = newY + 'px';
+                }
+            });
+            
+            // Handle button click when fields empty
+            signInBtn.addEventListener('click', function(e) {
+                if (!areFieldsFilled()) {
+                    e.preventDefault();
+                    
+                    // Shake animation
+                    loginBox.style.animation = 'shake 0.5s ease-in-out';
+                    setTimeout(() => {
+                        loginBox.style.animation = '';
+                    }, 500);
+                    
+                    // Move button to random position
+                    if (isButtonEvasive) {
+                        const bodyRect = loginBox.querySelector('.login-body').getBoundingClientRect();
+                        const buttonRect = buttonContainer.getBoundingClientRect();
+                        const maxX = bodyRect.width - buttonRect.width - 20;
+                        const maxY = bodyRect.height - buttonRect.height - 20;
+                        
+                        buttonContainer.style.left = (Math.random() * maxX + 10) + 'px';
+                        buttonContainer.style.top = (Math.random() * maxY + 10) + 'px';
+                    }
+                }
+            });
+            
+            // Handle Enter key
+            usernameField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    if (!isExpanded) {
+                        expandLoginBox();
+                    }
+                    passwordField.focus();
+                }
+            });
+            
+            passwordField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && areFieldsFilled()) {
+                    document.getElementById('loginForm').submit();
+                }
+            });
+            
+            // Visual feedback for focused fields
+            [usernameField, passwordField].forEach(field => {
+                field.addEventListener('focus', function() {
+                    if (!isExpanded) {
+                        expandLoginBox();
+                    }
+                });
+            });
+            
+            // Clean up on page unload
+            window.addEventListener('beforeunload', function() {
+                if (mouseAwayTimer) clearTimeout(mouseAwayTimer);
+                if (mouseNearTimer) clearTimeout(mouseNearTimer);
+            });
+            
+            // Initial state check
+            checkFieldsAndStopAnimations();
+        }
+
+        // Theme switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only initialize login functionality if login box exists
+            const loginBox = document.getElementById('loginBox');
+            if (loginBox) {
+                initializeLoginBox();
+            }
+            
+            // Handle theme selection from navbar
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const theme = this.getAttribute('data-theme');
+                    
+                    // Apply theme immediately for preview
+                    document.body.setAttribute('data-theme', theme);
+                    
+                    // Save theme preference via AJAX (if user is admin)
+                    if ({{ 'true' if session.admin_logged_in else 'false' }}) {
+                        saveThemePreference(theme);
+                    } else {
+                        // Store in localStorage for non-admin users
+                        localStorage.setItem('preferred_theme', theme);
+                    }
+                });
+            });
+            
+            // Apply saved theme for non-admin users
+            const savedTheme = localStorage.getItem('preferred_theme');
+            if (savedTheme && !{{ 'true' if session.admin_logged_in else 'false' }}) {
+                document.body.setAttribute('data-theme', savedTheme);
+            }
+        });
+        
+        function saveThemePreference(theme) {
+            // This would save the theme preference to the database
+            fetch('/api/save_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ theme: theme })
+            }).catch(error => {
+                console.log('Theme saved locally:', theme);
+                localStorage.setItem('preferred_theme', theme);
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

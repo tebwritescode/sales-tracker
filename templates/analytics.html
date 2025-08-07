@@ -1,0 +1,610 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Sales Tracker{% endblock %}
+
+{% block content %}
+<style>
+    .chart-container {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+    
+    .chart-container.loading {
+        opacity: 0.7;
+    }
+    
+    .chart-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        display: none;
+    }
+    
+    .chart-loading.active {
+        display: block;
+    }
+</style>
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-chart-line me-2"></i>Sales Analytics</h2>
+            <div class="d-flex gap-2">
+                <select id="periodFilter" class="form-select" style="width: auto;">
+                    <option value="YTD" {% if period_type == 'YTD' %}selected{% endif %}>Year to Date</option>
+                    <option value="month" {% if period_type == 'month' %}selected{% endif %}>This Month</option>
+                    <option value="quarter" {% if period_type == 'quarter' %}selected{% endif %}>This Quarter</option>
+                    <option value="year" {% if period_type == 'year' %}selected{% endif %}>This Year</option>
+                </select>
+                <button class="btn btn-outline-primary" onclick="exportData()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    {% set total_revenue = sales_data|sum(attribute='total_revenue') or 0 %}
+    {% set total_deals = sales_data|sum(attribute='total_deals') or 0 %}
+    {% set total_commission = sales_data|sum(attribute='total_commission') or 0 %}
+    
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="totalRevenue">${{ "%.0f"|format(total_revenue) }}</div>
+            <div class="metric-label">Total Revenue</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card bg-success">
+            <div class="metric-value" id="totalDeals">{{ total_deals }}</div>
+            <div class="metric-label">Total Deals</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card bg-warning">
+            <div class="metric-value" id="totalCommission">${{ "%.0f"|format(total_commission) }}</div>
+            <div class="metric-label">Total Commission</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card bg-info">
+            <div class="metric-value" id="activeEmployees">{{ employees|length }}</div>
+            <div class="metric-label">Active Employees</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card dashboard-card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-chart-bar me-2"></i>Revenue by Employee</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="chartType" id="linearChart" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="linearChart">Linear</label>
+                    
+                    <input type="radio" class="btn-check" name="chartType" id="logChart" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="logChart">Log Scale</label>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" id="revenueChartContainer">
+                    <div class="chart-loading" id="revenueChartLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+                <div id="chartInfo" class="small text-muted mt-2"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie me-2"></i>Deals Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" id="dealsChartContainer">
+                    <div class="chart-loading" id="dealsChartLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <canvas id="dealsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line me-2"></i>Sales Trends</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" id="trendsChartContainer">
+                    <div class="chart-loading" id="trendsChartLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5><i class="fas fa-table me-2"></i>Employee Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Revenue</th>
+                                <th>Deals</th>
+                                <th>Commission</th>
+                                <th>Avg Deal Size</th>
+                            </tr>
+                        </thead>
+                        <tbody id="performanceTableBody">
+                            {% for row in sales_data %}
+                            <tr data-employee="{{ loop.index0 }}">
+                                <td><strong class="employee-name">{{ row.name }}</strong></td>
+                                <td class="employee-revenue">${{ "%.2f"|format(row.total_revenue) }}</td>
+                                <td class="employee-deals">{{ row.total_deals }}</td>
+                                <td class="employee-commission">${{ "%.2f"|format(row.total_commission) }}</td>
+                                <td class="employee-avg">${{ "%.2f"|format(row.total_revenue / row.total_deals) if row.total_deals > 0 else 0 }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No sales data for this period</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Chart colors
+const colors = [
+    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+    '#9966FF', '#FF9F40', '#FF6384', '#36A2EB'
+];
+
+// Global variables for chart management
+let currentRevenueChart = null;
+let currentDealsChart = null;
+let currentTrendsChart = null;
+let currentSalesData = null;
+let randomDataInterval = null;
+
+// Check if user is logged in (passed from template)
+const isLoggedIn = {{ 'true' if is_logged_in else 'false' }};
+const showBlur = {{ 'true' if show_blur else 'false' }};
+
+// Random data generation for blur effect
+function generateRandomData() {
+    const employees = ['Demo User 1', 'Demo User 2', 'Demo User 3', 'Demo User 4'];
+    const data = {
+        labels: employees,
+        revenue: [],
+        deals: [],
+        commission: []
+    };
+    
+    employees.forEach(() => {
+        const revenue = Math.floor(Math.random() * 200000) + 50000; // 50k - 250k
+        const deals = Math.floor(Math.random() * 80) + 10; // 10 - 90 deals
+        const commission = Math.floor(revenue * (Math.random() * 0.08 + 0.02)); // 2-10% commission
+        
+        data.revenue.push(revenue);
+        data.deals.push(deals);
+        data.commission.push(commission);
+    });
+    
+    return data;
+}
+
+function generateRandomTrendsData() {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const data = {
+        labels: months.slice(0, 8),
+        revenue: [],
+        deals: []
+    };
+    
+    months.slice(0, 8).forEach(() => {
+        data.revenue.push(Math.floor(Math.random() * 500000) + 100000);
+        data.deals.push(Math.floor(Math.random() * 150) + 50);
+    });
+    
+    return data;
+}
+
+function updateRandomMetrics() {
+    if (!showBlur) return;
+    
+    // Update metric cards
+    document.getElementById('totalRevenue').textContent = '$' + (Math.floor(Math.random() * 800000) + 200000).toLocaleString();
+    document.getElementById('totalDeals').textContent = Math.floor(Math.random() * 300) + 50;
+    document.getElementById('totalCommission').textContent = '$' + (Math.floor(Math.random() * 40000) + 10000).toLocaleString();
+    document.getElementById('activeEmployees').textContent = Math.floor(Math.random() * 5) + 3;
+    
+    // Update table data
+    const tableRows = document.querySelectorAll('#performanceTableBody tr[data-employee]');
+    tableRows.forEach(row => {
+        const revenue = Math.floor(Math.random() * 200000) + 50000;
+        const deals = Math.floor(Math.random() * 80) + 10;
+        const commission = Math.floor(revenue * (Math.random() * 0.08 + 0.02));
+        const avgDeal = Math.floor(revenue / deals);
+        
+        row.querySelector('.employee-revenue').textContent = '$' + revenue.toLocaleString() + '.00';
+        row.querySelector('.employee-deals').textContent = deals;
+        row.querySelector('.employee-commission').textContent = '$' + commission.toLocaleString() + '.00';
+        row.querySelector('.employee-avg').textContent = '$' + avgDeal.toLocaleString() + '.00';
+    });
+    
+    // Update charts with random data
+    if (showBlur) {
+        const randomData = generateRandomData();
+        const randomTrendsData = generateRandomTrendsData();
+        
+        updateRevenueChart(randomData, document.getElementById('logChart').checked);
+        updateDealsChart(randomData);
+        updateTrendsChart(randomTrendsData);
+    }
+}
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (showBlur) {
+        // Start random data updates for blurred content
+        updateRandomMetrics(); // Update immediately
+        randomDataInterval = setInterval(updateRandomMetrics, 10000); // Update every 10 seconds
+    } else {
+        // Load real data for authenticated users
+        loadCharts();
+    }
+    
+    // Add event listeners for chart type toggle
+    document.querySelectorAll('input[name="chartType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (currentSalesData) {
+                updateRevenueChart(currentSalesData, this.value === 'logChart');
+            } else if (showBlur) {
+                // For blurred content, generate new random data
+                const randomData = generateRandomData();
+                updateRevenueChart(randomData, this.value === 'logChart');
+            }
+        });
+    });
+});
+
+// Period filter change handler
+document.getElementById('periodFilter').addEventListener('change', function() {
+    const period = this.value;
+    window.location.href = `{{ url_for('analytics') }}?period=${period}`;
+});
+
+function loadCharts() {
+    // Get sales data from API
+    fetch(`/api/sales_data?period={{ period_type }}`)
+        .then(response => response.json())
+        .then(data => {
+            currentSalesData = data;
+            createRevenueChart(data);
+            createDealsChart(data);
+        })
+        .catch(error => {
+            console.log('Using fallback data for charts');
+            // Fallback to demo data if API fails
+            const fallbackData = generateRandomData();
+            currentSalesData = fallbackData;
+            createRevenueChart(fallbackData);
+            createDealsChart(fallbackData);
+        });
+    
+    // Get trends data
+    fetch('/api/trends_data')
+        .then(response => response.json())
+        .then(data => {
+            createTrendsChart(data);
+        })
+        .catch(error => {
+            console.log('Using fallback trends data');
+            const fallbackTrendsData = generateRandomTrendsData();
+            createTrendsChart(fallbackTrendsData);
+        });
+}
+
+function createRevenueChart(data) {
+    const forceLog = document.getElementById('logChart').checked;
+    updateRevenueChart(data, forceLog);
+}
+
+function updateRevenueChart(data, useLogScale = false) {
+    // Show loading indicator
+    showChartLoading('revenue');
+    
+    // Add slight delay for smooth transitions
+    setTimeout(() => {
+        // Destroy existing chart if it exists
+        if (currentRevenueChart) {
+            currentRevenueChart.destroy();
+        }
+    
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    // Check if we have extreme value differences
+    const maxValue = Math.max(...data.revenue);
+    const minValue = Math.min(...data.revenue.filter(v => v > 0));
+    const avgValue = data.revenue.reduce((a, b) => a + b, 0) / data.revenue.length;
+    const hasExtremeDifference = maxValue > avgValue * 10;
+    
+    // Determine scale type
+    const scaleType = useLogScale || (hasExtremeDifference && !document.getElementById('linearChart').checked) ? 'logarithmic' : 'linear';
+    
+    let chartConfig = {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Revenue ($)',
+                data: data.revenue,
+                backgroundColor: colors.slice(0, data.labels.length),
+                borderColor: colors.slice(0, data.labels.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: scaleType === 'logarithmic' ? 'Revenue by Employee (Logarithmic Scale)' : 'Revenue by Employee'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            return `${context.dataset.label}: $${value.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: scaleType === 'linear',
+                    type: scaleType,
+                    min: scaleType === 'logarithmic' ? Math.max(1, minValue * 0.1) : 0,
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) {
+                                return '$' + (value / 1000000).toFixed(1) + 'M';
+                            } else if (value >= 1000) {
+                                return '$' + (value / 1000).toFixed(0) + 'K';
+                            } else {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+    
+        currentRevenueChart = new Chart(ctx, chartConfig);
+        
+        // Update info text
+        const infoDiv = document.getElementById('chartInfo');
+        if (hasExtremeDifference && scaleType === 'linear') {
+            infoDiv.innerHTML = '<i class="fas fa-info-circle text-warning me-1"></i>Large value differences detected. Consider using Log Scale for better visualization.';
+        } else if (scaleType === 'logarithmic') {
+            infoDiv.innerHTML = '<i class="fas fa-info-circle text-info me-1"></i>Using logarithmic scale to handle large value differences.';
+        } else {
+            infoDiv.innerHTML = '';
+        }
+        
+        // Hide loading indicator
+        hideChartLoading('revenue');
+    }, showBlur ? 100 : 10); // Shorter delay for logged-in users
+}
+
+function createDealsChart(data) {
+    updateDealsChart(data);
+}
+
+function updateDealsChart(data) {
+    // Show loading indicator
+    showChartLoading('deals');
+    
+    // Add slight delay for smooth transitions
+    setTimeout(() => {
+        // Destroy existing chart if it exists
+        if (currentDealsChart) {
+            currentDealsChart.destroy();
+        }
+    
+    const ctx = document.getElementById('dealsChart').getContext('2d');
+        currentDealsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.deals,
+                    backgroundColor: colors.slice(0, data.labels.length),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Deals Distribution'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Hide loading indicator
+        hideChartLoading('deals');
+    }, showBlur ? 100 : 10); // Shorter delay for logged-in users
+}
+
+function createTrendsChart(data) {
+    updateTrendsChart(data);
+}
+
+function updateTrendsChart(data) {
+    // Show loading indicator
+    showChartLoading('trends');
+    
+    // Add slight delay for smooth transitions
+    setTimeout(() => {
+        // Destroy existing chart if it exists
+        if (currentTrendsChart) {
+            currentTrendsChart.destroy();
+        }
+    
+    const ctx = document.getElementById('trendsChart').getContext('2d');
+        currentTrendsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: data.revenue,
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Deals',
+                    data: data.deals,
+                    borderColor: '#FF6384',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    fill: false,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Sales Trends Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false,
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Hide loading indicator
+        hideChartLoading('trends');
+    }, showBlur ? 100 : 10); // Shorter delay for logged-in users
+}
+
+// Loading indicator functions
+function showChartLoading(chartType) {
+    const container = document.getElementById(chartType + 'ChartContainer');
+    const loading = document.getElementById(chartType + 'ChartLoading');
+    if (container && loading) {
+        container.classList.add('loading');
+        loading.classList.add('active');
+    }
+}
+
+function hideChartLoading(chartType) {
+    const container = document.getElementById(chartType + 'ChartContainer');
+    const loading = document.getElementById(chartType + 'ChartLoading');
+    if (container && loading) {
+        container.classList.remove('loading');
+        loading.classList.remove('active');
+    }
+}
+
+function exportData() {
+    // Create CSV data
+    const csvData = [
+        ['Employee', 'Revenue', 'Deals', 'Commission', 'Avg Deal Size']
+    ];
+    
+    {% for row in sales_data %}
+    csvData.push([
+        '{{ row.name }}',
+        '{{ "%.2f"|format(row.total_revenue) }}',
+        '{{ row.total_deals }}',
+        '{{ "%.2f"|format(row.total_commission) }}',
+        '{{ "%.2f"|format(row.total_revenue / row.total_deals) if row.total_deals > 0 else 0 }}'
+    ]);
+    {% endfor %}
+    
+    // Convert to CSV string
+    const csvString = csvData.map(row => row.join(',')).join('\n');
+    
+    // Download file
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `sales_report_{{ period_type }}_{{ start_date }}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

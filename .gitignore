@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Upload files
+uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*.backup_*
+
+# Test files
+test_*.html
+standalone_*.html
+run_test.py
+test_*.py
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Cookies and session files
+cookies.txt
+session.txt
+
+# Docker override files
+docker-compose.override.yml
+
+# Environment variables
+.env.local
+.env.production
+.env.development
+EOF < /dev/null

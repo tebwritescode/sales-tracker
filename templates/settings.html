@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Sales Tracker{% endblock %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-cog me-2"></i>System Settings</h2>
+            <a href="{{ url_for('management') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Management
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <!-- General Settings -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-sliders-h me-2"></i>General Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.default_analytics_period.label(class="form-label") }}
+                        {{ form.default_analytics_period(class="form-select") }}
+                        <div class="form-text">Default time period shown when accessing analytics</div>
+                        {% if form.default_analytics_period.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.default_analytics_period.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Account Settings -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5><i class="fas fa-user-shield me-2"></i>Admin Account</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.admin_username.label(class="form-label") }}
+                        {{ form.admin_username(class="form-control") }}
+                        {% if form.admin_username.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.admin_username.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.current_password.label(class="form-label") }}
+                        {{ form.current_password(class="form-control", placeholder="Enter current password to change") }}
+                        <div class="form-text">Required only when changing password</div>
+                        {% if form.current_password.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.current_password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.new_password.label(class="form-label") }}
+                        {{ form.new_password(class="form-control", placeholder="Leave blank to keep current password") }}
+                        {% if form.new_password.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.new_password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Display Settings -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-eye me-2"></i>Display Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.commission_display.label(class="form-label") }}
+                                {{ form.commission_display(class="form-select") }}
+                                <div class="form-text">How commission rates are displayed</div>
+                                {% if form.commission_display.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.commission_display.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.draw_display.label(class="form-label") }}
+                                {{ form.draw_display(class="form-select") }}
+                                <div class="form-text">How draw payments are displayed</div>
+                                {% if form.draw_display.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.draw_display.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Scheme Settings -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-palette me-2"></i>Color Scheme</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.color_scheme.label(class="form-label") }}
+                                {{ form.color_scheme(class="form-select", id="colorSchemeSelect") }}
+                                <div class="form-text">Choose your preferred color scheme</div>
+                                {% if form.color_scheme.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.color_scheme.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Preview</label>
+                                <div id="themePreview" class="border rounded p-3">
+                                    <div class="d-flex gap-2 mb-2">
+                                        <div class="preview-color preview-primary" style="width: 30px; height: 30px; border-radius: 5px;"></div>
+                                        <div class="preview-color preview-success" style="width: 30px; height: 30px; border-radius: 5px;"></div>
+                                        <div class="preview-color preview-warning" style="width: 30px; height: 30px; border-radius: 5px;"></div>
+                                        <div class="preview-color preview-info" style="width: 30px; height: 30px; border-radius: 5px;"></div>
+                                    </div>
+                                    <small class="text-muted">Color palette preview</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Theme Swatches -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <label class="form-label">Quick Selection</label>
+                            <div class="d-flex flex-wrap gap-2" id="themeSwatch">
+                                <!-- Theme swatches will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('management') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- System Info -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h6><i class="fas fa-info-circle me-2"></i>System Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Version:</span>
+                        <strong>1.0.0</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Database:</span>
+                        <strong>SQLite</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Total Employees:</span>
+                        <strong id="totalEmployees">-</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Total Sales Records:</span>
+                        <strong id="totalSales">-</strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Last Backup:</span>
+                        <strong>Never</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Maintenance -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header bg-success text-white">
+                <h6><i class="fas fa-tools me-2"></i>Maintenance</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="backupDatabase()">
+                        <i class="fas fa-download me-1"></i>Backup Database
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="cleanupData()">
+                        <i class="fas fa-broom me-1"></i>Cleanup Old Data
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="regenerateReports()">
+                        <i class="fas fa-sync me-1"></i>Regenerate Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div class="card dashboard-card">
+            <div class="card-header bg-danger text-white">
+                <h6><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    These actions cannot be undone. Use with extreme caution.
+                </p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-warning btn-sm" onclick="resetAllSettings()">
+                        Reset All Settings
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="clearAllData()">
+                        Clear All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Theme color definitions
+const themes = {
+    'default': {
+        name: 'Default Blue',
+        primary: '#0d6efd',
+        success: '#198754',
+        warning: '#ffc107',
+        info: '#0dcaf0'
+    },
+    'dark': {
+        name: 'Dark Theme',
+        primary: '#375a7f',
+        success: '#00bc8c',
+        warning: '#f39c12',
+        info: '#3498db'
+    },
+    'green': {
+        name: 'Nature Green',
+        primary: '#28a745',
+        success: '#20c997',
+        warning: '#ffc107',
+        info: '#20c997'
+    },
+    'purple': {
+        name: 'Royal Purple',
+        primary: '#6f42c1',
+        success: '#e83e8c',
+        warning: '#ffc107',
+        info: '#6f42c1'
+    },
+    'orange': {
+        name: 'Sunset Orange',
+        primary: '#fd7e14',
+        success: '#20c997',
+        warning: '#ffc107',
+        info: '#fd7e14'
+    },
+    'teal': {
+        name: 'Ocean Teal',
+        primary: '#20c997',
+        success: '#28a745',
+        warning: '#ffc107',
+        info: '#17a2b8'
+    },
+    'red': {
+        name: 'Corporate Red',
+        primary: '#dc3545',
+        success: '#28a745',
+        warning: '#fd7e14',
+        info: '#dc3545'
+    },
+    'pink': {
+        name: 'Modern Pink',
+        primary: '#e83e8c',
+        success: '#20c997',
+        warning: '#ffc107',
+        info: '#6f42c1'
+    }
+};
+
+// Load system stats and initialize theme functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // In a real implementation, these would be loaded via AJAX
+    document.getElementById('totalEmployees').textContent = '5';
+    document.getElementById('totalSales').textContent = '1,247';
+    
+    // Initialize theme functionality
+    initializeThemeSelector();
+    updatePreview();
+});
+
+function initializeThemeSelector() {
+    const colorSchemeSelect = document.getElementById('colorSchemeSelect');
+    const themeSwatch = document.getElementById('themeSwatch');
+    
+    // Create theme swatches
+    Object.keys(themes).forEach(themeKey => {
+        const theme = themes[themeKey];
+        const swatch = document.createElement('div');
+        swatch.className = 'theme-swatch';
+        swatch.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.info} 100%);
+            position: relative;
+            transition: all 0.3s ease;
+        `;
+        swatch.title = theme.name;
+        swatch.addEventListener('click', () => {
+            colorSchemeSelect.value = themeKey;
+            updatePreview();
+            // Live preview
+            document.body.setAttribute('data-theme', themeKey);
+        });
+        
+        // Mark current theme
+        if (colorSchemeSelect.value === themeKey) {
+            swatch.style.borderColor = '#000';
+            swatch.style.transform = 'scale(1.1)';
+        }
+        
+        themeSwatch.appendChild(swatch);
+    });
+    
+    // Add change event listener
+    colorSchemeSelect.addEventListener('change', function() {
+        updatePreview();
+        // Live preview
+        document.body.setAttribute('data-theme', this.value);
+        
+        // Update swatch selection
+        document.querySelectorAll('.theme-swatch').forEach((swatch, index) => {
+            const themeKey = Object.keys(themes)[index];
+            if (themeKey === this.value) {
+                swatch.style.borderColor = '#000';
+                swatch.style.transform = 'scale(1.1)';
+            } else {
+                swatch.style.borderColor = 'transparent';
+                swatch.style.transform = 'scale(1)';
+            }
+        });
+    });
+}
+
+function updatePreview() {
+    const selectedTheme = document.getElementById('colorSchemeSelect').value;
+    const theme = themes[selectedTheme];
+    
+    if (theme) {
+        document.querySelector('.preview-primary').style.backgroundColor = theme.primary;
+        document.querySelector('.preview-success').style.backgroundColor = theme.success;
+        document.querySelector('.preview-warning').style.backgroundColor = theme.warning;
+        document.querySelector('.preview-info').style.backgroundColor = theme.info;
+    }
+}
+
+function backupDatabase() {
+    if (confirm('Create a backup of the current database?')) {
+        alert('Database backup functionality would be implemented here.');
+    }
+}
+
+function cleanupData() {
+    if (confirm('This will remove old, unnecessary data. Continue?')) {
+        alert('Data cleanup functionality would be implemented here.');
+    }
+}
+
+function regenerateReports() {
+    if (confirm('Regenerate all cached reports and analytics?')) {
+        alert('Report regeneration functionality would be implemented here.');
+    }
+}
+
+function resetAllSettings() {
+    if (confirm('Reset all settings to default values? This will not affect employee or sales data.')) {
+        if (confirm('Are you sure? This action cannot be undone.')) {
+            alert('Settings reset functionality would be implemented here.');
+        }
+    }
+}
+
+function clearAllData() {
+    if (confirm('This will DELETE ALL employee and sales data. This action CANNOT be undone.')) {
+        if (confirm('This is your FINAL WARNING. All data will be permanently lost. Continue?')) {
+            const verification = prompt('Type "DELETE ALL DATA" to confirm:');
+            if (verification === 'DELETE ALL DATA') {
+                alert('Data clearing functionality would be implemented here.');
+            } else {
+                alert('Verification failed. No data was deleted.');
+            }
+        }
+    }
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const newPassword = document.getElementById('new_password').value;
+    const currentPassword = document.getElementById('current_password').value;
+    
+    if (newPassword && !currentPassword) {
+        e.preventDefault();
+        alert('Please enter your current password to change it');
+        return;
+    }
+    
+    if (newPassword && newPassword.length < 4) {
+        e.preventDefault();
+        alert('New password must be at least 4 characters long');
+        return;
+    }
+});
+</script>
+{% endblock %}

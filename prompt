@@ -1,0 +1,51 @@
+Create a Flask web application for sales tracking with the following specifications:
+
+Database (SQLite):
+
+Employee table: id, name, hire_date, active_status, commission_rate, draw_amount
+Sales table: id, employee_id, date, revenue_amount, number_of_deals, commission_earned, draw_payment, period_type (week/month/quarter)
+Settings table: default_analytics_period, admin_username, admin_password_hash, field_toggles (JSON for percentage vs dollar switches)
+Goals table: id, employee_id, period_type, period_start, period_end, revenue_goal, deals_goal
+Three Main Pages:
+
+Management Tab (Password Protected):
+Login form with username/password authentication
+Employee management: Add/Edit/Remove employees with fields for name, commission rate, draw amount
+Settings panel: Modify admin credentials, set default analytics period (YTD default)
+Field toggle switches: Commission (% vs ),Drawpayments()
+Goal setting interface for employees by time period
+Analytics Page (Public Access):
+Default view: Year-to-Date sales for all employees
+Interactive charts using Chart.js or Plotly:
+Bar charts: Employee comparison (revenue, deals, commission)
+Line charts: Sales trends over time (weekly/monthly/quarterly)
+Pie charts: Goal achievement percentages
+Comparison views: Side-by-side period analysis
+Time period filters: Week, Month, Quarter, Year, Custom date range
+Export functionality for reports
+Data Entry Page (Public Access):
+Form to input sales data: Employee dropdown, date picker, revenue amount, number of deals
+Commission calculation (automatic based on employee rate and toggle settings)
+Draw payment tracking with running balance
+Quick entry for multiple time periods
+Bulk import option (CSV upload)
+Data validation and error handling
+Technical Requirements:
+
+Flask with SQLAlchemy ORM
+Flask-WTF for forms and CSRF protection
+Werkzeug for password hashing
+Bootstrap 5 for responsive UI
+Chart.js for data visualization
+SQLite database with proper relationships
+Session management for admin authentication
+Form validation and error messages
+Mobile-responsive design
+Additional Features:
+
+Dashboard widgets showing key metrics
+Data backup/restore functionality
+Audit trail for data changes
+Performance indicators and KPI tracking
+Email notifications for goal achievements (optional)
+Include proper error handling, input validation, and a clean, professional interface suitable for business use
