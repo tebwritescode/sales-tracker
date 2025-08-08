@@ -279,7 +279,15 @@ Built with Flask & Bootstrap. © 2024 Sales Tracker.
 
 ## Support
 
-For issues and questions, please create an issue in the repository or contact [tebbydog0605](https://github.com/tebbydog0605).
+Issues? Questions? Praise-singing?  
+File an issue on GitHub or yell at [teb](https://github.com/tebwritescode).
+
+---
+👑 Created by: [tebbydog0605](https://github.com/tebwritescode)  
+🐋 Docker Hub: [tebwritescode](https://hub.docker.com/u/tebwritescode)  
+💻 Website: [tebwrites.code](https://tebwrites.code)
+
+---
 
 ---
 
