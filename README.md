@@ -285,12 +285,4 @@ File an issue on GitHub or yell at [teb](https://github.com/tebwritescode).
 ---
 👑 Created by: [tebbydog0605](https://github.com/tebwritescode)  
 🐋 Docker Hub: [tebwritescode](https://hub.docker.com/u/tebwritescode)  
-💻 Website: [tebwrites.code](https://tebwrites.code)
-
----
-
----
-
-**Created by**: [tebbydog0605](https://github.com/tebbydog0605)  
-**Docker Hub**: [tebwritescode](https://hub.docker.com/u/tebwritescode)  
-**Website**: [tebwrites.code](https://tebwrites.code)
+💻 Website: [teb.codes](https://teb.codes)
