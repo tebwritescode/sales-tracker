@@ -2,6 +2,13 @@
 
 A modern, playful web application for sales tracking and analytics with an interactive login experience.
 
+## Screenshots
+![Login](https://teb.codes/2-Code/Flask/Sales%20Tracker/Screenshot_2025-08-08_at_3.35.43_PM.png)
+![Management](https://teb.codes/2-Code/Flask/Sales%20Tracker/Screenshot_2025-08-08_at_3.36.21_PM.png)
+![Analytics](https://teb.codes/2-Code/Flask/Sales%20Tracker/Screenshot_2025-08-08_at_3.36.30_PM.png)
+![Data Entry](https://teb.codes/2-Code/Flask/Sales%20Tracker/Screenshot_2025-08-08_at_3.36.41_PM.png)
+![User Edit](https://teb.codes/2-Code/Flask/Sales%20Tracker/Screenshot_2025-08-08_at_3.36.48_PM.png)
+
 ## Features
 
 - 📊 **Sales Analytics Dashboard** - Track and visualize sales performance
@@ -10,8 +17,6 @@ A modern, playful web application for sales tracking and analytics with an inter
 - 🎮 **Interactive Login** - Unique, playful login experience with cursor-evasive Sign In button
 - 🔒 **Secure Authentication** - Session-based authentication with password hashing
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
-
-## Features
 
 ### Core Functionality
 - **Employee Management**: Add, edit, and manage sales employees with commission rates and draw amounts
